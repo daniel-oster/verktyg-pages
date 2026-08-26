@@ -24,39 +24,8 @@
     --shadow: rgba(34, 29, 23, 0.18);
     --focus: #a2761f;
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --paper: #16120d;
-      --paper-2: #201a13;
-      --paper-3: #2b2318;
-      --ink: #ede6d8;
-      --ink-dim: #b0a48d;
-      --falu: #d9634a;
-      --falu-bright: #ef7c60;
-      --gold: #d9a83e;
-      --pine: #7fa08c;
-      --line: rgba(237, 230, 216, 0.16);
-      --shadow: rgba(0, 0, 0, 0.5);
-      --focus: #d9a83e;
-    }
-  }
-  :root[data-theme="dark"] {
-    --paper: #16120d;
-    --paper-2: #201a13;
-    --paper-3: #2b2318;
-    --ink: #ede6d8;
-    --ink-dim: #b0a48d;
-    --falu: #d9634a;
-    --falu-bright: #ef7c60;
-    --gold: #d9a83e;
-    --pine: #7fa08c;
-    --line: rgba(237, 230, 216, 0.16);
-    --shadow: rgba(0, 0, 0, 0.5);
-    --focus: #d9a83e;
-  }
-
   * { box-sizing: border-box; }
-  html { color-scheme: light dark; }
+  html { color-scheme: light; }
   body {
     margin: 0;
     background: var(--paper);
@@ -86,15 +55,6 @@
   .masthead h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 0.95; text-transform: uppercase; }
   .masthead h1 span { color: var(--falu); }
   .raceday-label { font-size: 1.05rem; color: var(--ink-dim); margin-top: 0.35rem; }
-  .theme-toggle {
-    border: 1px solid var(--line);
-    background: var(--paper-2);
-    border-radius: 999px;
-    padding: 0.4rem 0.9rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-  }
-
   .controls {
     display: flex;
     flex-wrap: wrap;
@@ -188,6 +148,7 @@
   table.starters tbody tr { cursor: pointer; }
   table.starters tbody tr:hover { background: var(--paper-3); }
   table.starters tbody tr.is-annabelle { background: color-mix(in srgb, var(--falu) 12%, transparent); }
+  table.starters tbody tr.is-match { box-shadow: inset 3px 0 0 var(--gold); }
   .horse-name-cell { font-weight: 600; }
   .horse-sub { color: var(--ink-dim); font-size: 0.82rem; }
   .post-num { font-family: "IBM Plex Mono"; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
@@ -265,7 +226,6 @@
         <h1>Start<span>lista</span></h1>
         <div class="raceday-label" id="racedayLabel">Laddar…</div>
       </div>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">🌓 Ljus/mörk</button>
     </div>
   </div>
 </header>
@@ -459,9 +419,15 @@ function render() {
     });
 
     grid.appendChild(card);
+
+    if (query) expandCard(card, race);
   });
 
   empty.hidden = shown > 0;
+}
+
+function matchesSearch(h, query) {
+  return !!query && [h.name, h.driver, h.trainer].filter(Boolean).some((v) => v.toLowerCase().includes(query));
 }
 
 function toggleCard(card, race) {
@@ -478,16 +444,27 @@ function expandCard(card, race) {
   const panel = card.querySelector(".starters-panel");
   panel.hidden = false;
 
-  const starters = [...race.starters].sort((a, b) => a.post - b.post);
-  const rows = starters.map((h, idx) => `
-    <tr data-idx="${idx}" class="${isAnnabelle(h.driver) || isAnnabelle(h.trainer) ? "is-annabelle" : ""}">
-      <td class="post-num">${h.post}</td>
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  // Handicap races start different horses from different distances, so post
+  // numbers repeat per distance tier (e.g. two horses can both be "spår 1",
+  // one at 1640 m and one at 1700 m) — sort and label by both.
+  const mixedDistances = new Set(race.starters.map((h) => h.distance_m)).size > 1;
+  const starters = [...race.starters].sort((a, b) => a.distance_m - b.distance_m || a.post - b.post);
+  const rows = starters.map((h, idx) => {
+    const classes = [
+      isAnnabelle(h.driver) || isAnnabelle(h.trainer) ? "is-annabelle" : "",
+      matchesSearch(h, query) ? "is-match" : "",
+    ].filter(Boolean).join(" ");
+    return `
+    <tr data-idx="${idx}" class="${classes}">
+      <td class="post-num">${mixedDistances ? `${h.post} <span class="horse-sub">(${h.distance_m} m)</span>` : h.post}</td>
       <td class="horse-name-cell">${h.name}${h.silks ? `<span class="silks-swatch" style="background:${silksColorGuess(h.silks)}"></span>` : ""}<div class="horse-sub">${h.age} år · ${h.sex}</div></td>
       <td>${h.driver}${isAnnabelle(h.driver) ? " ⭐" : ""}</td>
       <td class="horse-sub">${h.trainer || "—"}</td>
       <td class="mono">${h.record_times || "—"}</td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
 
   panel.innerHTML = `
     <div class="conditions">${race.conditions || ""}${race.prize_structure ? " Prispoäng: " + race.prize_structure : ""}</div>
@@ -588,22 +565,6 @@ document.getElementById("annabelleToggle").addEventListener("click", (e) => {
   e.currentTarget.setAttribute("aria-pressed", String(!pressed));
   render();
 });
-
-document.getElementById("themeToggle").addEventListener("click", () => {
-  const root = document.documentElement;
-  const current = root.getAttribute("data-theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  let next;
-  if (!current) next = prefersDark ? "light" : "dark";
-  else if (current === "dark") next = "light";
-  else next = "dark";
-  root.setAttribute("data-theme", next);
-  try { localStorage.setItem("theme", next); } catch (e) {}
-});
-try {
-  const saved = localStorage.getItem("theme");
-  if (saved) document.documentElement.setAttribute("data-theme", saved);
-} catch (e) {}
 
 loadManifest().then((slug) => slug && loadRaceday(slug));
 </script>

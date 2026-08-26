@@ -45,5 +45,6 @@ travprogram): "Big Shoulders Display" for headings, "IBM Plex Sans"
 for body copy, "IBM Plex Mono" for numbers/times. The per-race colour
 badge (Gul/Blå/Grön/...) comes straight from the PDF's own printed
 race colour — it's real information, not decoration, so don't drop it
-in a redesign. Full light/dark theme support via CSS custom
-properties — test both when changing colors.
+in a redesign. Light theme only, by request — colors are still CSS
+custom properties in `:root`, but there's no dark-mode block or theme
+toggle; don't reintroduce one without being asked.

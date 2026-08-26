@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Startlista</title>
+<meta name="description" content="Startlistor för travdagar, med varje lopp och häst förklarat i klarspråk.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%238C2F1F'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle' fill='%23EDE6D8' font-family='Georgia,serif'%3E1%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ede6d8;
+    --paper-2: #e2d9c4;
+    --paper-3: #d8ccb2;
+    --ink: #221d17;
+    --ink-dim: #6b6152;
+    --falu: #8c2f1f;
+    --falu-bright: #a83b26;
+    --gold: #a2761f;
+    --pine: #33463b;
+    --line: rgba(34, 29, 23, 0.16);
+    --shadow: rgba(34, 29, 23, 0.18);
+    --focus: #a2761f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #16120d;
+      --paper-2: #201a13;
+      --paper-3: #2b2318;
+      --ink: #ede6d8;
+      --ink-dim: #b0a48d;
+      --falu: #d9634a;
+      --falu-bright: #ef7c60;
+      --gold: #d9a83e;
+      --pine: #7fa08c;
+      --line: rgba(237, 230, 216, 0.16);
+      --shadow: rgba(0, 0, 0, 0.5);
+      --focus: #d9a83e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #16120d;
+    --paper-2: #201a13;
+    --paper-3: #2b2318;
+    --ink: #ede6d8;
+    --ink-dim: #b0a48d;
+    --falu: #d9634a;
+    --falu-bright: #ef7c60;
+    --gold: #d9a83e;
+    --pine: #7fa08c;
+    --line: rgba(237, 230, 216, 0.16);
+    --shadow: rgba(0, 0, 0, 0.5);
+    --focus: #d9a83e;
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  h1, h2, h3, .display {
+    font-family: "Big Shoulders Display", "Arial Narrow", sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  .mono, .tabular { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
+
+  header.masthead {
+    border-bottom: 3px solid var(--ink);
+    padding: 2.25rem 0 1.5rem;
+  }
+  .masthead-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .masthead h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 0.95; text-transform: uppercase; }
+  .masthead h1 span { color: var(--falu); }
+  .raceday-label { font-size: 1.05rem; color: var(--ink-dim); margin-top: 0.35rem; }
+  .theme-toggle {
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .controls select, .controls input[type="search"] {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 0.5rem 0.7rem;
+    font: inherit;
+  }
+  .controls input[type="search"] { min-width: 15rem; flex: 1 1 15rem; }
+  .toggle-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    border-radius: 999px;
+    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+  }
+  .toggle-chip[aria-pressed="true"] {
+    background: var(--gold);
+    color: var(--paper);
+    border-color: var(--gold);
+  }
+
+  main { padding: 1.75rem 0 4rem; }
+
+  .race-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1rem;
+  }
+
+  .race-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.1rem 1.15rem 1.25rem;
+    cursor: pointer;
+    box-shadow: 0 1px 0 var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .race-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px var(--shadow); }
+  .race-card.expanded {
+    grid-column: 1 / -1;
+    cursor: default;
+    transform: none;
+  }
+  .race-card.hidden { display: none; }
+
+  .race-card-head { display: flex; align-items: flex-start; gap: 0.85rem; }
+  .race-badge {
+    flex: none;
+    width: 3rem; height: 3rem;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-family: "Big Shoulders Display", sans-serif;
+    font-weight: 800;
+    font-size: 1.35rem;
+    border: 2px solid var(--ink);
+  }
+  .race-head-text { flex: 1; min-width: 0; }
+  .race-title { font-size: 1.05rem; font-weight: 600; font-family: "IBM Plex Sans"; line-height: 1.25; }
+  .race-meta { color: var(--ink-dim); font-size: 0.85rem; margin-top: 0.25rem; }
+  .race-annabelle {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--falu);
+    font-weight: 600;
+  }
+  .expand-hint { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-dim); }
+
+  .starters-panel { margin-top: 1.1rem; border-top: 1px dashed var(--line); padding-top: 1rem; }
+  .conditions { font-size: 0.85rem; color: var(--ink-dim); margin-bottom: 0.9rem; }
+  table.starters { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  table.starters th {
+    text-align: left; font-weight: 600; color: var(--ink-dim);
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 0.3rem 0.5rem; border-bottom: 1px solid var(--line);
+  }
+  table.starters td { padding: 0.5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.starters tbody tr { cursor: pointer; }
+  table.starters tbody tr:hover { background: var(--paper-3); }
+  table.starters tbody tr.is-annabelle { background: color-mix(in srgb, var(--falu) 12%, transparent); }
+  .horse-name-cell { font-weight: 600; }
+  .horse-sub { color: var(--ink-dim); font-size: 0.82rem; }
+  .post-num { font-family: "IBM Plex Mono"; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+  .table-scroll { overflow-x: auto; }
+
+  /* Fullscreen horse overlay */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50;
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2.5rem 1rem;
+    overflow-y: auto;
+  }
+  .overlay.open { display: flex; }
+  .overlay-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    max-width: 760px;
+    width: 100%;
+    padding: 2rem 1.75rem 2.25rem;
+    box-shadow: 0 20px 60px var(--shadow);
+  }
+  .overlay-close {
+    float: right;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    width: 2.2rem; height: 2.2rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  .overlay h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); text-transform: uppercase; margin-bottom: 0.15rem; }
+  .overlay .kicker { color: var(--ink-dim); font-size: 0.95rem; margin-bottom: 1.1rem; }
+  .fact-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.9rem;
+    margin: 1.2rem 0;
+  }
+  .fact { border-left: 3px solid var(--gold); padding-left: 0.7rem; }
+  .fact-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-dim); }
+  .fact-value { font-size: 1rem; margin-top: 0.15rem; }
+  .prose p { margin: 0 0 0.85rem; max-width: 62ch; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin: 1rem 0 1.3rem; }
+  .stat-box { background: var(--paper-2); border: 1px solid var(--line); border-radius: 10px; padding: 0.75rem 0.85rem; }
+  .stat-box .fact-label { margin-bottom: 0.2rem; }
+  .stat-num { font-family: "IBM Plex Mono"; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+  .form-legend { font-size: 0.78rem; color: var(--ink-dim); margin-bottom: 0.5rem; }
+  ul.form-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+  ul.form-list li {
+    font-family: "IBM Plex Mono"; font-size: 0.82rem;
+    background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.45rem 0.6rem; overflow-x: auto; white-space: pre;
+  }
+  .silks-swatch { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; border: 1px solid var(--line); margin-right: 0.35em; vertical-align: -0.05em; }
+
+  footer { border-top: 1px solid var(--line); padding: 1.5rem 0 3rem; color: var(--ink-dim); font-size: 0.85rem; }
+  footer a { color: var(--falu); text-decoration: underline; }
+
+  .empty-state { padding: 3rem 0; text-align: center; color: var(--ink-dim); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .race-card { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="masthead-row">
+      <div>
+        <h1>Start<span>lista</span></h1>
+        <div class="raceday-label" id="racedayLabel">Laddar…</div>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">🌓 Ljus/mörk</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="controls">
+    <select id="racedaySelect" aria-label="Välj travdag" hidden></select>
+    <input type="search" id="searchInput" placeholder="Sök häst, kusk eller tränare…" aria-label="Sök häst, kusk eller tränare">
+    <button class="toggle-chip" id="annabelleToggle" type="button" aria-pressed="false">⭐ Bara Annabelles lopp</button>
+  </div>
+
+  <div class="race-grid" id="raceGrid" aria-live="polite"></div>
+  <div class="empty-state" id="emptyState" hidden>Inga lopp matchar filtret.</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    Data hämtad från Svensk Travsports officiella startlistor
+    (<span class="mono">cdn.travsport.se</span>). Se
+    <a href="https://github.com/daniel-oster/verktyg/tree/main/travsport-startlist/GLOSSARY.md">ordlistan</a>
+    för alla förkortningar. Källkod: <a href="https://github.com/daniel-oster/verktyg-pages">verktyg-pages</a>.
+  </div>
+</footer>
+
+<div class="overlay" id="horseOverlay" role="dialog" aria-modal="true" aria-labelledby="overlayName">
+  <div class="overlay-card" id="overlayCard"></div>
+</div>
+
+<script>
+"use strict";
+
+const TRACKS = {
+  Ar: "Arvika", Ax: "Axevalla", B: "Bergsåker", Bo: "Boden", Bs: "Bollnäs",
+  D: "Dannero", Dj: "Dala Järna", E: "Eskilstuna", F: "Färjestad", G: "Gävle",
+  Gt: "Göteborg Trav", H: "Hagmyren", Hd: "Halmstad", Hg: "Hoting", J: "Jägersro",
+  Kh: "Karlshamn", Kr: "Kalmar", L: "Lindesberg", Ly: "Lycksele", Mp: "Mantorp",
+  Ov: "Oviken", Ro: "Romme", Rä: "Rättvik", S: "Solvalla", Sk: "Skellefteå",
+  Sä: "Solänget", Ti: "Tingsryd", Tt: "Täby Trav", U: "Umåker", Vd: "Vemdalen",
+  Vg: "Vaggeryd", Vi: "Visby", Å: "Åby", Åm: "Åmål", År: "Årjäng", Ö: "Örebro",
+  Ös: "Östersund",
+};
+
+const RACE_COLORS = {
+  Gul: "#d9a727", Blå: "#2c5fa8", Grön: "#2f6e4f", Svart: "#221f1b",
+  Ljusgrön: "#7daa4e", Rosa: "#d77a9e", Ljusbrun: "#a9784f", Mörkbrun: "#5b3a22",
+  Orange: "#d9722c", Ljusblå: "#6fa8c7", Lila: "#7b5ca6", Vit: "#f2efe6",
+};
+function contrastFor(hex) {
+  const c = hex.replace("#", "");
+  const r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? "#221d17" : "#ede6d8";
+}
+
+const SEX_LABEL = { sto: "ett sto", valack: "en valack", hingst: "en hingst" };
+const START_TYPE_LABEL = { Auto: "autostart", Volt: "voltstart", "Monté": "monté (ridet lopp)" };
+
+function fmtSEK(n) {
+  return (n || 0).toLocaleString("sv-SE") + " kr";
+}
+
+function isAnnabelle(name) {
+  return !!name && name.toLowerCase().includes("annabelle");
+}
+
+function decodeFormLine(line) {
+  // Only treat a token as a track code if the next token looks like the
+  // date field that always follows it (e.g. "Rä 24/") — otherwise short
+  // codes like "E" collide with a driver's abbreviated first name ("Bonde E").
+  const tokens = line.split(" ");
+  const out = tokens.map((t, i) => {
+    const next = tokens[i + 1];
+    if (TRACKS[t] && next && /^\d{1,2}\/$/.test(next)) return `${t} (${TRACKS[t]})`;
+    return t;
+  });
+  return out.join(" ");
+}
+
+function explainHorse(h, raceCtx) {
+  const paras = [];
+
+  let p1 = `${h.name} är ${SEX_LABEL[h.sex] || "en häst"}, ${h.age ?? "okänd"} år`;
+  if (h.sire) p1 += `, efter ${h.sire}`;
+  if (h.dam) p1 += ` och ur ${h.dam}`;
+  if (h.name_asterisk) p1 += " (märkt med * i startlistan — sannolikt okänd eller utländsk uppfödare/härstamning, se ordlistan)";
+  paras.push(p1 + ".");
+
+  let p2 = `I dagens lopp ${raceCtx.title ? `("${raceCtx.title}") ` : ""}startar hästen från spår ${h.post} över ${h.distance_m} meter, ${START_TYPE_LABEL[raceCtx.start_type] || raceCtx.start_type || ""}.`;
+  p2 += ` Kusk är ${h.driver}${h.driver_amateur ? " (amatörlicens)" : ""}`;
+  if (h.trainer) {
+    p2 += `, tränare är ${h.trainer}${h.trainer_amateur ? " (amatörlicens)" : ""}.`;
+  } else {
+    p2 += ", som också är hästens tränare.";
+  }
+  paras.push(p2);
+
+  let p3 = `Ägare: ${h.owner || "okänd"}.`;
+  if (h.breeder) p3 += ` Uppfödare: ${h.breeder}.`;
+  if (h.silks) p3 += ` Kuskens dräkt: ${h.silks}.`;
+  paras.push(p3);
+
+  if (h.record_times) {
+    paras.push(`Personbästa kilometertider: ${h.record_times} — bokstaven anger bandistans (k=kort, m=medel, l=lång) och ett extra "a" betyder att tiden sattes vid autostart. Totalt intjänat: ${fmtSEK(h.earnings_sek)}.`);
+  }
+
+  return paras;
+}
+
+function statLine(s) {
+  if (!s) return null;
+  const [w, p2, p3] = (s.placements || "0-0-0").split("-");
+  return `${s.starts} starter — ${w} segrar, ${p2} andraplatser, ${p3} tredjeplatser` +
+    (s.best_time ? `, bästa tid ${s.best_time}` : "") +
+    (typeof s.earnings === "number" ? `, ${fmtSEK(s.earnings)}` : "");
+}
+
+let CURRENT_RACEDAY = null;
+let RACES = [];
+let manifest = [];
+
+async function loadManifest() {
+  const res = await fetch("data/manifest.json");
+  manifest = await res.json();
+  const select = document.getElementById("racedaySelect");
+  select.innerHTML = "";
+  manifest.forEach((m) => {
+    const opt = document.createElement("option");
+    opt.value = m.slug; opt.textContent = m.label;
+    select.appendChild(opt);
+  });
+  select.hidden = manifest.length <= 1;
+  select.addEventListener("change", () => loadRaceday(select.value));
+  return manifest[0]?.slug;
+}
+
+async function loadRaceday(slug) {
+  const entry = manifest.find((m) => m.slug === slug) || manifest[0];
+  if (!entry) return;
+  const res = await fetch(`data/${entry.file}`);
+  const data = await res.json();
+  CURRENT_RACEDAY = { ...entry, raceday: data.raceday };
+  RACES = data.races;
+  document.getElementById("racedayLabel").textContent = data.raceday || entry.label;
+  document.getElementById("racedaySelect").value = slug;
+  render();
+}
+
+function raceHasAnnabelle(race) {
+  return race.starters.some((h) => isAnnabelle(h.driver) || isAnnabelle(h.trainer));
+}
+
+function render() {
+  const grid = document.getElementById("raceGrid");
+  const empty = document.getElementById("emptyState");
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const onlyAnnabelle = document.getElementById("annabelleToggle").getAttribute("aria-pressed") === "true";
+
+  grid.innerHTML = "";
+  let shown = 0;
+
+  RACES.forEach((race) => {
+    const hasAnnabelle = raceHasAnnabelle(race);
+    const matchesQuery = !query || race.starters.some((h) =>
+      [h.name, h.driver, h.trainer].filter(Boolean).some((v) => v.toLowerCase().includes(query))
+    );
+    const matchesAnnabelle = !onlyAnnabelle || hasAnnabelle;
+    if (!matchesQuery || !matchesAnnabelle) return;
+    shown++;
+
+    const card = document.createElement("article");
+    card.className = "race-card";
+    const color = RACE_COLORS[race.color] || "#8c2f1f";
+    const textColor = contrastFor(color);
+
+    card.innerHTML = `
+      <div class="race-card-head">
+        <div class="race-badge" style="background:${color};color:${textColor};border-color:${textColor === "#221d17" ? "#221d17" : color}">${race.race_number ?? "K"}</div>
+        <div class="race-head-text">
+          <div class="race-title">${race.title || "Lopp"}</div>
+          <div class="race-meta">${race.start_time ? "kl " + race.start_time : ""} · ${race.distance_m} m · ${START_TYPE_LABEL[race.start_type] || race.start_type || ""} · ${race.starters.length} hästar</div>
+          ${hasAnnabelle ? '<div class="race-annabelle">⭐ Annabelle kör i det här loppet</div>' : ""}
+        </div>
+      </div>
+      <div class="expand-hint">Klicka för att se startande hästar ▾</div>
+      <div class="starters-panel" hidden></div>
+    `;
+
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("tr[data-idx]")) return;
+      toggleCard(card, race);
+    });
+
+    grid.appendChild(card);
+  });
+
+  empty.hidden = shown > 0;
+}
+
+function toggleCard(card, race) {
+  const willExpand = !card.classList.contains("expanded");
+  document.querySelectorAll(".race-card.expanded").forEach((c) => {
+    if (c !== card) collapseCard(c);
+  });
+  if (willExpand) expandCard(card, race); else collapseCard(card);
+}
+
+function expandCard(card, race) {
+  card.classList.add("expanded");
+  card.querySelector(".expand-hint").textContent = "Klicka för att stänga ▴";
+  const panel = card.querySelector(".starters-panel");
+  panel.hidden = false;
+
+  const starters = [...race.starters].sort((a, b) => a.post - b.post);
+  const rows = starters.map((h, idx) => `
+    <tr data-idx="${idx}" class="${isAnnabelle(h.driver) || isAnnabelle(h.trainer) ? "is-annabelle" : ""}">
+      <td class="post-num">${h.post}</td>
+      <td class="horse-name-cell">${h.name}${h.silks ? `<span class="silks-swatch" style="background:${silksColorGuess(h.silks)}"></span>` : ""}<div class="horse-sub">${h.age} år · ${h.sex}</div></td>
+      <td>${h.driver}${isAnnabelle(h.driver) ? " ⭐" : ""}</td>
+      <td class="horse-sub">${h.trainer || "—"}</td>
+      <td class="mono">${h.record_times || "—"}</td>
+    </tr>
+  `).join("");
+
+  panel.innerHTML = `
+    <div class="conditions">${race.conditions || ""}${race.prize_structure ? " Prispoäng: " + race.prize_structure : ""}</div>
+    <div class="table-scroll">
+      <table class="starters">
+        <thead><tr><th>Spår</th><th>Häst</th><th>Kusk</th><th>Tränare</th><th>Rekord</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+
+  panel.querySelectorAll("tr[data-idx]").forEach((tr) => {
+    tr.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openHorse(starters[Number(tr.dataset.idx)], race);
+    });
+  });
+}
+
+function collapseCard(card) {
+  card.classList.remove("expanded");
+  card.querySelector(".expand-hint").textContent = "Klicka för att se startande hästar ▾";
+  card.querySelector(".starters-panel").hidden = true;
+}
+
+// Very rough colour guess from the Swedish silks description's first word, just for a decorative dot.
+function silksColorGuess(desc) {
+  const first = desc.split(",")[0].trim().toLowerCase();
+  const map = {
+    "svart": "#221f1b", "vit": "#f2efe6", "röd": "#8c2f1f", "blå": "#2c5fa8",
+    "gul": "#d9a727", "grön": "#2f6e4f", "rosa": "#d77a9e", "orange": "#d9722c",
+    "lila": "#7b5ca6", "mörkblå": "#1f3a63", "ljusblå": "#6fa8c7", "silver": "#9aa0a6",
+    "turkos": "#2f8f8a", "grå": "#8a8a86", "brun": "#5b3a22",
+  };
+  for (const [k, v] of Object.entries(map)) if (first.startsWith(k)) return v;
+  return "transparent";
+}
+
+function openHorse(h, race) {
+  const overlay = document.getElementById("horseOverlay");
+  const card = document.getElementById("overlayCard");
+  const paras = explainHorse(h, race);
+
+  const statBoxes = [
+    ["Karriär", statLine(h.stats.career)],
+    ["I år", statLine(h.stats.this_year)],
+    ["Förra året", statLine(h.stats.last_year)],
+  ].filter(([, v]) => v).map(([label, v]) => `
+    <div class="stat-box"><div class="fact-label">${label}</div><div>${v}</div></div>
+  `).join("");
+
+  const formItems = (h.recent_form_raw || []).map((l) => `<li>${decodeFormLine(l)}</li>`).join("");
+
+  card.innerHTML = `
+    <button class="overlay-close" id="overlayCloseBtn" aria-label="Stäng">✕</button>
+    <h2 id="overlayName">${h.name}</h2>
+    <div class="kicker">Spår ${h.post} · ${race.title || ""} · kl ${race.start_time || "?"}</div>
+
+    <div class="fact-grid">
+      <div class="fact"><div class="fact-label">Kusk</div><div class="fact-value">${h.driver}${h.driver_amateur ? " (amatör)" : ""}</div></div>
+      <div class="fact"><div class="fact-label">Tränare</div><div class="fact-value">${h.trainer || "samma som kusk"}${h.trainer_amateur ? " (amatör)" : ""}</div></div>
+      <div class="fact"><div class="fact-label">Ägare</div><div class="fact-value">${h.owner || "okänd"}</div></div>
+      <div class="fact"><div class="fact-label">Uppfödare</div><div class="fact-value">${h.breeder || "okänd"}</div></div>
+      <div class="fact"><div class="fact-label">Distans</div><div class="fact-value">${h.distance_m} m, spår ${h.post}</div></div>
+      <div class="fact"><div class="fact-label">Intjänat</div><div class="fact-value">${fmtSEK(h.earnings_sek)}</div></div>
+    </div>
+
+    <div class="prose">${paras.map((p) => `<p>${p}</p>`).join("")}</div>
+
+    ${statBoxes ? `<div class="stats-grid">${statBoxes}</div>` : ""}
+
+    ${formItems ? `
+      <div class="form-legend">Senaste starterna (rått ur startlistan — kusk · bankod · datum · spår/distans · placering · kmtid · skor fram/bak · tillägg). Bankoder är uppslagna. Se <a href="https://github.com/daniel-oster/verktyg/tree/main/travsport-startlist/GLOSSARY.md">ordlistan</a> för hur man tolkar resten.</div>
+      <ul class="form-list">${formItems}</ul>
+    ` : ""}
+  `;
+
+  document.getElementById("overlayCloseBtn").addEventListener("click", closeHorse);
+  overlay.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeHorse() {
+  document.getElementById("horseOverlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("horseOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "horseOverlay") closeHorse();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeHorse();
+});
+
+document.getElementById("searchInput").addEventListener("input", render);
+document.getElementById("annabelleToggle").addEventListener("click", (e) => {
+  const pressed = e.currentTarget.getAttribute("aria-pressed") === "true";
+  e.currentTarget.setAttribute("aria-pressed", String(!pressed));
+  render();
+});
+
+document.getElementById("themeToggle").addEventListener("click", () => {
+  const root = document.documentElement;
+  const current = root.getAttribute("data-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  let next;
+  if (!current) next = prefersDark ? "light" : "dark";
+  else if (current === "dark") next = "light";
+  else next = "dark";
+  root.setAttribute("data-theme", next);
+  try { localStorage.setItem("theme", next); } catch (e) {}
+});
+try {
+  const saved = localStorage.getItem("theme");
+  if (saved) document.documentElement.setAttribute("data-theme", saved);
+} catch (e) {}
+
+loadManifest().then((slug) => slug && loadRaceday(slug));
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+name: Uppdatera startlistor
+
+on:
+  # Håller redan tillagda travdagar färska (t.ex. strukna hästar,
+  # kuskbyten) fram till loppdagen.
+  schedule:
+    - cron: "0 */6 * * *"
+  # Kör manuellt från Actions-fliken. Fyll i url/slug/label för att
+  # hämta en ny travdag; lämna alla tre tomma för att bara uppdatera
+  # de som redan finns i data/manifest.json.
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "PDF-URL (cdn.travsport.se/startlists/trot/<typ>/<id>.pdf) för en ny/enskild travdag"
+        required: false
+      slug:
+        description: "Filnamn för datat, t.ex. romme-32667 (krävs om url anges)"
+        required: false
+      label:
+        description: "Namn i travdags-väljaren, t.ex. 'Romme, söndag 30 augusti 2026' (krävs om url anges)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-startlists
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r scripts/requirements.txt
+
+      - name: Hämta en specifik travdag
+        if: ${{ github.event.inputs.url != '' }}
+        run: |
+          python scripts/fetch_raceday.py \
+            --url "${{ github.event.inputs.url }}" \
+            --slug "${{ github.event.inputs.slug }}" \
+            --label "${{ github.event.inputs.label }}"
+
+      - name: Uppdatera alla befintliga travdagar
+        if: ${{ github.event.inputs.url == '' }}
+        run: python scripts/refresh_all.py
+
+      - name: Committa och pusha ändringar
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Inga ändringar i data/."
+          else
+            git commit -m "Uppdatera startlistdata"
+            git push
+          fi

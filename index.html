@@ -134,6 +134,12 @@
     color: var(--falu);
     font-weight: 600;
   }
+  .race-defilering {
+    margin-top: 0.3rem;
+    font-size: 0.74rem;
+    color: var(--ink-dim);
+    max-width: 30ch;
+  }
   .expand-hint { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-dim); }
 
   .starters-panel { margin-top: 1.1rem; border-top: 1px dashed var(--line); padding-top: 1rem; }
@@ -311,6 +317,22 @@ function fmtSEK(n) {
 
 function isAnnabelle(name) {
   return !!name && name.toLowerCase().includes("annabelle");
+}
+
+// Romme's own tävlingsrutiner don't publish a fixed "be at the parade ring
+// N minutes before start" rule — the exact time is announced live over the
+// stable-area loudspeakers each raceday. The one fixed, sourced figure is
+// that "provstart" (trial start behind the car) happens 3 minutes before
+// start, immediately after defilering finishes, for any race with a total
+// purse up to 100 000 kr (which covers every race at this level) — see
+// https://www.rommetravet.se/sport-och-spel/for-aktiva/tavlingsrutiner-romme
+function defileringDeadline(startTime) {
+  const m = (startTime || "").match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const total = parseInt(m[1], 10) * 60 + parseInt(m[2], 10) - 3;
+  const h = Math.floor(((total % 1440) + 1440) % 1440 / 60);
+  const mm = ((total % 60) + 60) % 60;
+  return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
 
 // Breaks one raw "senaste starter" line into its fields. The format isn't
@@ -595,7 +617,10 @@ function render() {
         <div class="race-head-text">
           <div class="race-title">${race.title || "Lopp"}</div>
           <div class="race-meta">${race.start_time ? "kl " + race.start_time : ""} · ${race.distance_m} m · ${START_TYPE_LABEL[race.start_type] || race.start_type || ""} · ${race.starters.length} hästar</div>
-          ${hasAnnabelle ? '<div class="race-annabelle">⭐ Annabelle kör i det här loppet</div>' : ""}
+          ${hasAnnabelle ? `
+            <div class="race-annabelle">⭐ Annabelle kör i det här loppet</div>
+            ${defileringDeadline(race.start_time) ? `<div class="race-defilering">Defilering ska vara klar kl ${defileringDeadline(race.start_time)} (provstart 3 min innan start, enligt Rommes tävlingsrutiner)</div>` : ""}
+          ` : ""}
         </div>
       </div>
       <div class="expand-hint">Klicka för att se startande hästar ▾</div>

@@ -199,12 +199,34 @@
   .stat-box .fact-label { margin-bottom: 0.2rem; }
   .stat-num { font-family: "IBM Plex Mono"; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
   .form-legend { font-size: 0.78rem; color: var(--ink-dim); margin-bottom: 0.5rem; }
-  ul.form-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
-  ul.form-list li {
-    font-family: "IBM Plex Mono"; font-size: 0.82rem;
+  .form-list { display: grid; gap: 0.4rem; }
+  details.form-item {
     background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px;
-    padding: 0.45rem 0.6rem; overflow-x: auto; white-space: pre;
+    overflow: hidden;
   }
+  details.form-item summary {
+    padding: 0.55rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.87rem;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  details.form-item summary::-webkit-details-marker { display: none; }
+  details.form-item summary::before {
+    content: "▸";
+    color: var(--gold);
+    font-size: 0.75rem;
+    transition: transform 0.15s ease;
+    flex: none;
+  }
+  details.form-item[open] summary::before { transform: rotate(90deg); }
+  details.form-item summary:hover { background: var(--paper-3); }
+  .form-detail { padding: 0 0.9rem 0.85rem 1.75rem; }
+  .form-detail p { margin: 0.3rem 0; font-size: 0.88rem; max-width: 58ch; }
+  .form-detail p.unclear { font-size: 0.76rem; color: var(--ink-dim); }
+  .form-detail .form-raw { font-family: "IBM Plex Mono"; font-size: 0.72rem; color: var(--ink-dim); margin-top: 0.5rem; word-break: break-word; }
   .silks-swatch { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; border: 1px solid var(--line); margin-right: 0.35em; vertical-align: -0.05em; }
 
   footer { border-top: 1px solid var(--line); padding: 1.5rem 0 3rem; color: var(--ink-dim); font-size: 0.85rem; }
@@ -291,17 +313,184 @@ function isAnnabelle(name) {
   return !!name && name.toLowerCase().includes("annabelle");
 }
 
-function decodeFormLine(line) {
-  // Only treat a token as a track code if the next token looks like the
-  // date field that always follows it (e.g. "Rä 24/") — otherwise short
-  // codes like "E" collide with a driver's abbreviated first name ("Bonde E").
-  const tokens = line.split(" ");
-  const out = tokens.map((t, i) => {
-    const next = tokens[i + 1];
-    if (TRACKS[t] && next && /^\d{1,2}\/$/.test(next)) return `${t} (${TRACKS[t]})`;
-    return t;
-  });
-  return out.join(" ");
+// Breaks one raw "senaste starter" line into its fields. The format isn't
+// formally documented anywhere we could find (see GLOSSARY.md's sources) —
+// this is reverse-engineered from patterns across the dataset, confirmed
+// against known abbreviations (g/a/d/k/gdk) where possible. Fields we
+// couldn't pin down land in `unclear` rather than being guessed at.
+function decodeRecentStart(line) {
+  const tokens = line.split(" ").filter(Boolean);
+  let i = 0;
+
+  // Driver name: 1–3 words, until a token that IS a track code and is
+  // immediately followed by something that looks like a day ("24/...").
+  // (A bare track-code letter can otherwise collide with a driver's
+  // abbreviated first name, e.g. "Bonde E" vs. track code "E" = Eskilstuna.)
+  const driverParts = [];
+  let track = null;
+  while (i < tokens.length) {
+    const t = tokens[i], next = tokens[i + 1];
+    if (TRACKS[t] && next && /^\d{1,2}\//.test(next)) { track = t; i++; break; }
+    driverParts.push(t);
+    i++;
+  }
+  const driver = driverParts.join(" ");
+
+  // Date + lopp-code, e.g. "24/" "5-7", or merged as one token "5/7-k".
+  // The "-k" suffix (confirmed: k = kvallopp) marks that start as a
+  // qualifying heat rather than an ordinary race.
+  let day = null, isQualifier = false;
+  const dateTok = tokens[i];
+  if (dateTok) {
+    const m = dateTok.match(/^(\d{1,2})\/(.*)$/);
+    if (m) {
+      day = m[1];
+      let rest = m[2];
+      i++;
+      if (!rest && /^\d+-\d+\w*$/.test(tokens[i] || "")) { rest = tokens[i]; i++; }
+      if (/k$/i.test(rest || "")) isQualifier = true;
+    }
+  }
+
+  // Post/distance for that start, e.g. "1/1180".
+  let post = null, dist = null;
+  while (i < tokens.length) {
+    const m = tokens[i].match(/^(\d+)\/(\d{3,4})$/);
+    if (m) { post = m[1]; dist = m[2]; i++; break; }
+    i++;
+  }
+
+  const tail = tokens.slice(i);
+  let ti = 0;
+  const unclear = [];
+
+  let time = null, timeAuto = false, timeGallop = false, noTime = false;
+  const applySuffix = (suffix) => {
+    if (suffix === "a" || suffix === "ag") timeAuto = true;
+    if (suffix === "g" || suffix === "ag") timeGallop = true;
+  };
+
+  // Placement: a number, or "d" (diskvalificerad) — sometimes merged with a
+  // trailing digit and/or an a/g suffix into one token ("d4", "d4ag", "du")
+  // rather than kept as separate words. A letter suffix on "d" alone (not a
+  // recognized a/g/ag) isn't confirmed, so it's left unread.
+  let placement = null, dqPosition = null;
+  const dqMatch = (tail[ti] || "").match(/^d(\d+)?([a-z]*)$/i);
+  if (dqMatch) {
+    placement = "dq"; ti++;
+    if (dqMatch[1]) dqPosition = dqMatch[1];
+    if (dqMatch[2] === "a" || dqMatch[2] === "g" || dqMatch[2] === "ag") applySuffix(dqMatch[2]);
+    else if (dqMatch[2]) unclear.push("d-tillägg:" + dqMatch[2]);
+    if (!dqMatch[1] && !dqMatch[2]) {
+      const posMatch = (tail[ti] || "").match(/^(\d+)(a|g|ag)?$/);
+      if (posMatch) { dqPosition = posMatch[1]; applySuffix(posMatch[2]); ti++; }
+    }
+  } else if (/^\d+$/.test(tail[ti] || "")) {
+    placement = tail[ti]; ti++;
+  }
+
+  // Optional bandistans-letter (k/m/l) right before the kmtid, same meaning
+  // as in the personal-best line: kort/medel/lång bana.
+  let distCategory = null;
+  if (/^[kml]$/.test(tail[ti] || "") && /^\*?\d{1,2},\d/.test(tail[ti + 1] || "")) {
+    distCategory = tail[ti]; ti++;
+  }
+
+  // Kilometertid, with optional a (autostart) / g (galopperade) suffix,
+  // glued to the number or as its own following token.
+  const timeMatch = (tail[ti] || "").match(/^\*?(\d{1,2},\d+)(a|g|ag)?$/);
+  if (timeMatch) {
+    time = timeMatch[1];
+    applySuffix(timeMatch[2]);
+    ti++;
+  } else {
+    const itMatch = (tail[ti] || "").match(/^it(a|g|ag)?$/);
+    if (itMatch) {
+      noTime = true; applySuffix(itMatch[1]); ti++; // best guess: "ingen tid" (no time registered)
+    }
+  }
+  if (tail[ti] === "a" || tail[ti] === "g") { applySuffix(tail[ti]); ti++; }
+
+  // The line ends with a fixed four-token group: two shoe codes
+  // (front/back, c = skodd, - = barfota), then a slot that's "-" for an
+  // ordinary race but holds the kvallopp pass/fail result (gdk = godkänd,
+  // ejg = ej godkänd) when this start was itself a qualifying heat, then
+  // the tillägg (added-distance) marker.
+  const rest = tail.slice(ti);
+  let shoeFront = null, shoeBack = null, qualResult = null, margin = null;
+  if (rest.length >= 4 && /^(-|\d*,?\d+')$/.test(rest[rest.length - 1])) {
+    const [sf, sb, flag, m] = rest.slice(-4);
+    if (/^[c-]$/.test(sf) && /^[c-]$/.test(sb)) {
+      shoeFront = sf; shoeBack = sb;
+      if (flag === "gdk" || flag === "ejg") qualResult = flag;
+      margin = m;
+      for (const t of rest.slice(0, -4)) unclear.push(t);
+    } else {
+      for (const t of rest) unclear.push(t);
+    }
+  } else {
+    for (const t of rest) unclear.push(t);
+  }
+
+  return { driver, track, day, isQualifier, post, dist, placement, dqPosition, distCategory, time, timeAuto, timeGallop, noTime, shoeFront, shoeBack, qualResult, margin, unclear };
+}
+
+function shoeText(front, back) {
+  if (!front && !back) return null;
+  const label = (c) => (c === "c" ? "skodd" : "barfota");
+  return front === back ? `Sprang ${label(front)} runt om.` : `Sprang ${label(front)} fram, ${label(back)} bak.`;
+}
+
+function explainRecentStart(d) {
+  const bana = d.track ? (TRACKS[d.track] || d.track) : "okänd bana";
+  const dayText = d.day ? `dag ${d.day} i månaden` : "ett tidigare tillfälle";
+  const sentences = [];
+
+  sentences.push(
+    `${d.isQualifier ? "Kvallopp (kvalificeringslopp)" : "Lopp"} på ${bana}, ${dayText}` +
+    `${d.dist ? `, över ${d.dist} m` : ""}${d.post ? ` från spår ${d.post}` : ""}. ` +
+    `Körd av ${d.driver || "okänd kusk"}.`
+  );
+
+  if (d.placement === "dq") {
+    sentences.push(
+      "Diskvalificerad" +
+      (d.dqPosition ? ` — låg ungefär på ${d.dqPosition}:e plats när det hände` : "") +
+      (d.timeGallop ? ", orsakat av galopp (bröt takten)" : "") + "."
+    );
+  } else if (d.placement) {
+    sentences.push(`Kom på plats ${d.placement}` + (d.timeGallop ? " (galopperade under loppet, men fullföljde)" : "") + ".");
+  }
+
+  if (d.time) {
+    sentences.push(`Kilometertid: ${d.time} sekunder${d.distCategory ? " (" + { k: "kort bana", m: "medeldistans", l: "lång bana" }[d.distCategory] + ")" : ""}${d.timeAuto ? ", autostart" : ""}.`);
+  } else if (d.noTime) {
+    sentences.push("Ingen kilometertid registrerad för den här starten.");
+  }
+
+  if (d.qualResult === "gdk") {
+    sentences.push("Godkänd i kvalet — det innebär att hästen fick fortsätta tävla.");
+  } else if (d.qualResult === "ejg") {
+    sentences.push("Ej godkänd i kvalet.");
+  }
+
+  const shoes = shoeText(d.shoeFront, d.shoeBack);
+  if (shoes) sentences.push(shoes);
+
+  if (d.margin && d.margin !== "-") {
+    const marginText = d.margin.replace(/^,/, "0,").replace("'", " meter");
+    sentences.push(`Tillägg (extra startdistans) den gången: ${marginText}.`);
+  }
+
+  return sentences;
+}
+
+function summarizeRecentStart(d) {
+  const bana = d.track ? (TRACKS[d.track] || d.track) : "okänd bana";
+  let place = d.placement === "dq" ? "diskvalificerad" : d.placement ? `plats ${d.placement}` : "okänd placering";
+  if (d.qualResult === "gdk") place = "godkänd i kval";
+  else if (d.qualResult === "ejg") place = "ej godkänd i kval";
+  return `${d.day ? "Dag " + d.day : "Tidigare start"} · ${bana} · ${place}`;
 }
 
 function explainHorse(h, raceCtx) {
@@ -516,7 +705,20 @@ function openHorse(h, race) {
     <div class="stat-box"><div class="fact-label">${label}</div><div>${v}</div></div>
   `).join("");
 
-  const formItems = (h.recent_form_raw || []).map((l) => `<li>${decodeFormLine(l)}</li>`).join("");
+  const formItems = (h.recent_form_raw || []).map((l) => {
+    const d = decodeRecentStart(l);
+    const sentences = explainRecentStart(d);
+    return `
+      <details class="form-item">
+        <summary>${summarizeRecentStart(d)}</summary>
+        <div class="form-detail">
+          ${sentences.map((s) => `<p>${s}</p>`).join("")}
+          ${d.unclear.length ? `<p class="unclear">Några tecken i raden gick inte att tolka säkert: <span class="mono">${d.unclear.join(" ")}</span></p>` : ""}
+          <div class="form-raw">Rådata: ${l}</div>
+        </div>
+      </details>
+    `;
+  }).join("");
 
   card.innerHTML = `
     <button class="overlay-close" id="overlayCloseBtn" aria-label="Stäng">✕</button>
@@ -537,8 +739,8 @@ function openHorse(h, race) {
     ${statBoxes ? `<div class="stats-grid">${statBoxes}</div>` : ""}
 
     ${formItems ? `
-      <div class="form-legend">Senaste starterna (rått ur startlistan — kusk · bankod · datum · spår/distans · placering · kmtid · skor fram/bak · tillägg). Bankoder är uppslagna. Se <a href="https://github.com/daniel-oster/verktyg/tree/main/travsport-startlist/GLOSSARY.md">ordlistan</a> för hur man tolkar resten.</div>
-      <ul class="form-list">${formItems}</ul>
+      <div class="form-legend">Senaste starterna — klicka på en rad för att se den förklarad i klartext. Ett par sällsynta koder går inte att tolka helt säkert; de visas rått istället för att gissas fel. Se <a href="https://github.com/daniel-oster/verktyg/tree/main/travsport-startlist/GLOSSARY.md">ordlistan</a> för källorna.</div>
+      <div class="form-list">${formItems}</div>
     ` : ""}
   `;
 

@@ -24,7 +24,11 @@ isn't already.
 
 ## Adding a new raceday
 
-Find the raceday's PDF URL — the pattern is
+Easiest: go to **Actions → Uppdatera startlistor → Run workflow** and
+fill in `url`, `slug`, `label`. It runs `fetch_raceday.py` and commits
+the result straight to `main` — nothing to run locally.
+
+To do it locally instead: find the raceday's PDF URL — the pattern is
 `https://cdn.travsport.se/startlists/trot/<typ>/<raceday_id>.pdf`
 (the `<raceday_id>` is the number from the `sportapp.travsport.se`
 raceday URL, e.g. `tr32667` → `32667`) — then:
@@ -40,6 +44,17 @@ python scripts/fetch_raceday.py \
 Commit the updated `data/romme-32667.json` and `data/manifest.json`.
 `index.html` itself doesn't need touching — it discovers racedays from
 the manifest at runtime.
+
+## Keeping data fresh automatically
+
+`.github/workflows/update-startlists.yml` runs every 6 hours (and on
+manual dispatch) and re-fetches every raceday already in
+`data/manifest.json` via `scripts/refresh_all.py` — picks up late
+scratches or driver changes between when a startlist was first added
+and the actual raceday, and commits straight to `main` if anything
+changed. Same workflow's manual-dispatch inputs (`url`/`slug`/`label`)
+are also the way to add a brand-new raceday without touching a
+terminal — see above.
 
 ## Keeping the vendored parser in sync
 

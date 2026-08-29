@@ -56,6 +56,33 @@ changed. Same workflow's manual-dispatch inputs (`url`/`slug`/`label`)
 are also the way to add a brand-new raceday without touching a
 terminal — see above.
 
+This only touches `data/<slug>.json` and `data/manifest.json` — those
+are the two files `fetch_raceday.py`/`refresh_all.py` generate. It
+never touches a `data/<slug>-voltvakt.json` file (see below), which is
+hand-entered and has no automated source.
+
+## Voltvakt rosters (optional, hand-entered)
+
+Tracks send out a separate "voltvaktslista" (who's on parade-ring
+marshal duty, per race/distance) to active participants — it isn't
+part of the public Travsport PDF, so there's no automated way to fetch
+it. If you have one for a raceday, transcribe it into
+`data/<slug>-voltvakt.json`:
+
+```json
+{
+  "races": {
+    "6": [{ "distance_m": 1220, "assignee": "Fam. Annabelle Öster" }]
+  }
+}
+```
+
+`index.html` picks this up automatically if the file exists for the
+current raceday and shows it on any race the person named "Annabelle"
+(hardcoded, see `raceHasAnnabelle`/`findVoltvakt` in `index.html`) is
+driving in, with a click-to-expand explanation of what "voltvakt"
+means. This file is never touched by the automated workflow.
+
 ## Keeping the vendored parser in sync
 
 `scripts/parse_startlist_pdf.py` is a copy of the one in

@@ -1,0 +1,97 @@
+{
+  "_note": "Manuellt inmatad från en voltvaktslista Dalatravet skickar ut separat till aktiva deltagare inför tävlingsdagen — inte del av den offentliga Travsport-PDF:en (cdn.travsport.se) och går inte att hämta automatiskt. Skriv INTE över den här filen från fetch_raceday.py/refresh_all.py. Se GLOSSARY.md i verktyg för vad 'voltvakt' betyder.",
+  "raceday_slug": "romme-32667",
+  "races": {
+    "1": [{ "distance_m": 2140, "assignee": "Dalatravet (auto)" }],
+    "2": [{ "distance_m": 2140, "assignee": "Dalatravet (auto)" }],
+    "4": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1660, "assignee": "Dalatravet" },
+      { "distance_m": 1700, "assignee": "Fam. Sally Stålnacke" },
+      { "distance_m": 1720, "assignee": "Fam. Emmi Lo Utbys" },
+      { "distance_m": 1740, "assignee": "Fam. Hanna Götesson" },
+      { "distance_m": 1760, "assignee": "Fam. Ella Bonde" },
+      { "distance_m": 1780, "assignee": "Fam. Nanna Höök Wallander" },
+      { "distance_m": 1800, "assignee": "Fam. Isabell Esposito" }
+    ],
+    "5": [{ "distance_m": 2140, "assignee": "Dalatravet (auto)" }],
+    "6": [
+      { "distance_m": 1140, "assignee": "Dalatravet" },
+      { "distance_m": 1160, "assignee": "Dalatravet" },
+      { "distance_m": 1200, "assignee": "Fam. Cazper Furu" },
+      { "distance_m": 1220, "assignee": "Fam. Annabelle Öster" },
+      { "distance_m": 1240, "assignee": "Fam. Ida Johansson" }
+    ],
+    "7": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1680, "assignee": "Dalatravet" },
+      { "distance_m": 1700, "assignee": "Fam. Emma Åberg" },
+      { "distance_m": 1720, "assignee": "Fam. Molly Skoglund" },
+      { "distance_m": 1740, "assignee": "Fam. Isabella Jansson Wiklund" }
+    ],
+    "8": [{ "distance_m": 1640, "assignee": "Dalatravet (auto)" }],
+    "9": [
+      { "distance_m": 1140, "assignee": "Dalatravet" },
+      { "distance_m": 1160, "assignee": "Dalatravet" },
+      { "distance_m": 1180, "assignee": "Fam. William Hedman" },
+      { "distance_m": 1200, "assignee": "Fam. Elise Forssten" },
+      { "distance_m": 1220, "assignee": "Fam. Annabelle Öster" },
+      { "distance_m": 1240, "assignee": "Fam. Signe Wennström" },
+      { "distance_m": 1280, "assignee": "Fam. Agnes Weiberth" },
+      { "distance_m": 1300, "assignee": "Fam. Tyra Junestam" }
+    ],
+    "10": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1660, "assignee": "Dalatravet" },
+      { "distance_m": 1680, "assignee": "Fam. Josephine M Andersen" },
+      { "distance_m": 1720, "assignee": "Fam. Johanna Degermark" },
+      { "distance_m": 1740, "assignee": "Fam. Alma Kindberg Källman" },
+      { "distance_m": 1760, "assignee": "Fam. Nellie Gradling" },
+      { "distance_m": 1780, "assignee": "Fam. Vera Jansson" },
+      { "distance_m": 1800, "assignee": "Fam. Elise Forssten" },
+      { "distance_m": 1820, "assignee": "Fam. Tyra Sahlsten" }
+    ],
+    "11": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1660, "assignee": "Dalatravet" },
+      { "distance_m": 1720, "assignee": "Fam. Freja Ellingsson" },
+      { "distance_m": 1740, "assignee": "Fam. Natalie van der Wal" },
+      { "distance_m": 1760, "assignee": "Fam. Thilde Forsberg-Borg" }
+    ],
+    "12": [
+      { "distance_m": 1140, "assignee": "Dalatravet" },
+      { "distance_m": 1160, "assignee": "Dalatravet" },
+      { "distance_m": 1200, "assignee": "Fam. Tilda Danielsson" },
+      { "distance_m": 1220, "assignee": "Fam. Cecilia Hedström" },
+      { "distance_m": 1240, "assignee": "Fam. Joline Elinsdotter" },
+      { "distance_m": 1260, "assignee": "Fam. Tyra Junestam" },
+      { "distance_m": 1280, "assignee": "Fam. Hanna Hellberg" },
+      { "distance_m": 1300, "assignee": "Fam. Olivia Leo" }
+    ],
+    "13": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1660, "assignee": "Dalatravet" },
+      { "distance_m": 1700, "assignee": "Fam. Thelma Wester" },
+      { "distance_m": 1720, "assignee": "Fam. Gustav Hedström" },
+      { "distance_m": 1740, "assignee": "Fam. Elise Forssten" }
+    ],
+    "14": [
+      { "distance_m": 1640, "assignee": "Dalatravet" },
+      { "distance_m": 1660, "assignee": "Dalatravet" },
+      { "distance_m": 1700, "assignee": "Fam. Olivia Leo" },
+      { "distance_m": 1720, "assignee": "Fam. Linnea Vassallo" },
+      { "distance_m": 1740, "assignee": "Fam. Wilma Malmberg" },
+      { "distance_m": 1760, "assignee": "Fam. Iris Fagerholm" }
+    ],
+    "15": [
+      { "distance_m": 1140, "assignee": "Dalatravet" },
+      { "distance_m": 1160, "assignee": "Dalatravet" },
+      { "distance_m": 1180, "assignee": "Fam. Iris Fagerholm" },
+      { "distance_m": 1200, "assignee": "Fam. Lise Ryberg" },
+      { "distance_m": 1220, "assignee": "Fam. Annabelle Öster" },
+      { "distance_m": 1240, "assignee": "Fam. Jasmine Ising" },
+      { "distance_m": 1260, "assignee": "Fam. Olivia Leo" },
+      { "distance_m": 1280, "assignee": "Fam. Simon Käck" }
+    ]
+  }
+}

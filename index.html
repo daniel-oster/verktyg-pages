@@ -140,6 +140,23 @@
     color: var(--ink-dim);
     max-width: 30ch;
   }
+  details.voltvakt-info {
+    margin-top: 0.4rem;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    max-width: 26rem;
+  }
+  details.voltvakt-info summary {
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.76rem;
+    font-weight: 600;
+    list-style: none;
+  }
+  details.voltvakt-info summary::-webkit-details-marker { display: none; }
+  .voltvakt-detail { padding: 0 0.7rem 0.65rem; }
+  .voltvakt-detail p { margin: 0.35rem 0; font-size: 0.78rem; color: var(--ink-dim); max-width: 46ch; }
   .expand-hint { margin-top: 0.75rem; font-size: 0.8rem; color: var(--ink-dim); }
 
   .starters-panel { margin-top: 1.1rem; border-top: 1px dashed var(--line); padding-top: 1rem; }
@@ -333,6 +350,25 @@ function defileringDeadline(startTime) {
   const h = Math.floor(((total % 1440) + 1440) % 1440 / 60);
   const mm = ((total % 60) + 60) % 60;
   return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+const VOLTVAKT_EXPLANATION = [
+  `En "voltvakt" (även kallad "understarter") är en funktionär som står vid en av voltarna
+   (startcirklarna) ute på banan under ett voltstartslopp — inte samma sak som att köra eller
+   sköta en häst. Uppgiften beskrivs som starterns "förlängda arm": att hjälpa till så att
+   starten går rätt till och minska risken för tjuvstarter.`,
+  `Vid mindre banor turas familjer till dagens deltagande hästar ofta om att stå voltvakt åt
+   varandras lopp, en volt (dvs. en startdistans) i taget. Det är därför det dyker upp en
+   voltvaktslista med "Fam. Förnamn Efternamn" vid en viss meterdistans per lopp — den listan
+   skickas ut separat av banan och är inte del av den offentliga startlistan.`,
+  `Osäkert kring detaljerna: den här sidan hittade ingen primärkälla (travsport.se:s regelverk
+   var inte åtkomligt) — beskrivningen ovan är en rimlig sammanfattning av vad som gick att
+   hitta, inte ett regelciterat faktum.`,
+];
+
+function findVoltvakt(raceNumber, nameFragment) {
+  const entries = VOLTVAKT[String(raceNumber)] || [];
+  return entries.find((e) => e.assignee.toLowerCase().includes(nameFragment.toLowerCase()));
 }
 
 // Breaks one raw "senaste starter" line into its fields. The format isn't
@@ -556,6 +592,23 @@ function statLine(s) {
 let CURRENT_RACEDAY = null;
 let RACES = [];
 let manifest = [];
+let VOLTVAKT = {};
+
+// Voltvakt rosters aren't part of the public Travsport PDF — the track
+// sends them out separately to active participants — so there's no
+// automated source for them. A file named "<slug>-voltvakt.json" is
+// optional, hand-entered data; if it's not there for this raceday, this
+// just silently yields no assignments.
+async function loadVoltvakt(slug) {
+  try {
+    const res = await fetch(`data/${slug}-voltvakt.json`);
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data.races || {};
+  } catch (e) {
+    return {};
+  }
+}
 
 async function loadManifest() {
   const res = await fetch("data/manifest.json");
@@ -579,6 +632,7 @@ async function loadRaceday(slug) {
   const data = await res.json();
   CURRENT_RACEDAY = { ...entry, raceday: data.raceday };
   RACES = data.races;
+  VOLTVAKT = await loadVoltvakt(slug);
   document.getElementById("racedayLabel").textContent = data.raceday || entry.label;
   document.getElementById("racedaySelect").value = slug;
   render();
@@ -620,6 +674,16 @@ function render() {
           ${hasAnnabelle ? `
             <div class="race-annabelle">⭐ Annabelle kör i det här loppet</div>
             ${defileringDeadline(race.start_time) ? `<div class="race-defilering">Defilering ska vara klar kl ${defileringDeadline(race.start_time)} (provstart 3 min innan start, enligt Rommes tävlingsrutiner)</div>` : ""}
+            ${(() => {
+              const vv = findVoltvakt(race.race_number, "Annabelle");
+              if (!vv) return "";
+              return `
+                <details class="voltvakt-info">
+                  <summary>🚩 Voltvakt: ${vv.distance_m} m (${vv.assignee})</summary>
+                  <div class="voltvakt-detail">${VOLTVAKT_EXPLANATION.map((p) => `<p>${p}</p>`).join("")}</div>
+                </details>
+              `;
+            })()}
           ` : ""}
         </div>
       </div>
@@ -628,7 +692,7 @@ function render() {
     `;
 
     card.addEventListener("click", (e) => {
-      if (e.target.closest("tr[data-idx]")) return;
+      if (e.target.closest("tr[data-idx]") || e.target.closest(".voltvakt-info")) return;
       toggleCard(card, race);
     });
 
